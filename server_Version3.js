@@ -28,6 +28,11 @@ function sanitizeRoomCode(code = "") {
   return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
 }
 
+function getPlayerName(room, socketId) {
+  const p = room.players.find((pl) => pl.socketId === socketId);
+  return p ? p.name : "Unknown";
+}
+
 function roomPublicState(roomCode) {
   const r = rooms[roomCode];
   if (!r) return null;
@@ -54,6 +59,18 @@ function buildVoteList(room) {
 }
 
 io.on("connection", (socket) => {
+  // ---- CHAT ----
+  socket.on("chatMsg", ({ roomCode, msg }) => {
+    roomCode = sanitizeRoomCode(roomCode);
+    const room = rooms[roomCode];
+    if (!room) return;
+    msg = (msg || "").trim().slice(0, 200);
+    if (!msg) return;
+    const name = getPlayerName(room, socket.id);
+    io.to(roomCode).emit("chatMsg", { name, msg });
+  });
+
+  // ---- ROOMS ----
   socket.on("createRoom", ({ roomCode, name }) => {
     roomCode = sanitizeRoomCode(roomCode || Math.random().toString(36).slice(2, 8).toUpperCase());
     name = (name || "").trim().slice(0, 24);
@@ -84,9 +101,11 @@ io.on("connection", (socket) => {
     socket.join(roomCode);
     socket.data.roomCode = roomCode;
     socket.emit("you", { socketId: socket.id, roomCode });
+    io.to(roomCode).emit("chatMsg", { name: "⚡", msg: `${name} joined the room` });
     emitRoom(roomCode);
   });
 
+  // ---- GAME ----
   socket.on("startGame", ({ roomCode }) => {
     roomCode = sanitizeRoomCode(roomCode);
     const room = rooms[roomCode];
@@ -124,8 +143,7 @@ io.on("connection", (socket) => {
   socket.on("readyForClue", ({ roomCode }) => {
     roomCode = sanitizeRoomCode(roomCode);
     const room = rooms[roomCode];
-    if (!room || !room.game) return;
-    if (room.hostSocketId !== socket.id) return;
+    if (!room || !room.game || room.hostSocketId !== socket.id) return;
 
     room.game.phase = "clue";
     const turn = room.players[room.game.turnIndex];
@@ -134,6 +152,7 @@ io.on("connection", (socket) => {
       round: room.game.round,
       turnSocketId: turn.socketId,
       turnName: turn.name,
+      clueLog: [],
     });
     emitRoom(roomCode);
   });
@@ -151,6 +170,10 @@ io.on("connection", (socket) => {
     if (!clue) return socket.emit("errorMsg", "Clue cannot be empty.");
 
     room.game.clues[socket.id].push(clue);
+
+    // broadcast live clue to everyone
+    io.to(roomCode).emit("newClue", { name: current.name, clue });
+
     room.game.turnIndex++;
 
     if (room.game.turnIndex >= room.players.length) {
@@ -166,9 +189,7 @@ io.on("connection", (socket) => {
     }
 
     const turn = room.players[room.game.turnIndex];
-    io.to(roomCode).emit("gamePhase", {
-      phase: "clue",
-      round: room.game.round,
+    io.to(roomCode).emit("turnUpdate", {
       turnSocketId: turn.socketId,
       turnName: turn.name,
     });
@@ -190,6 +211,7 @@ io.on("connection", (socket) => {
       round: room.game.round,
       turnSocketId: turn.socketId,
       turnName: turn.name,
+      clueLog: [],
     });
     emitRoom(roomCode);
   });
@@ -263,6 +285,7 @@ io.on("connection", (socket) => {
     const roomCode = socket.data.roomCode;
     if (!roomCode || !rooms[roomCode]) return;
     const room = rooms[roomCode];
+    const name = getPlayerName(room, socket.id);
 
     room.players = room.players.filter((p) => p.socketId !== socket.id);
     if (room.players.length === 0) { delete rooms[roomCode]; return; }
@@ -270,6 +293,7 @@ io.on("connection", (socket) => {
     if (room.game && room.game.phase === "clue")
       room.game.turnIndex = room.game.turnIndex % room.players.length;
 
+    io.to(roomCode).emit("chatMsg", { name: "⚡", msg: `${name} left the room` });
     emitRoom(roomCode);
   });
 });
