@@ -2,74 +2,91 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
   <title>Impostor Party</title>
   <link rel="stylesheet" href="/public_style.css" />
 </head>
 <body>
-  <div class="app">
+
+  <!-- SCREEN: JOIN -->
+  <div class="screen active" id="screenJoin">
     <h1>🕵️ Impostor Party</h1>
+    <input id="nameInput" placeholder="Your name" maxlength="24" />
+    <input id="roomInput" placeholder="Room code" maxlength="6" />
+    <button id="createBtn">Create Room</button>
+    <button id="joinBtn" class="secondary">Join Room</button>
+    <p id="errorBox" class="error"></p>
+  </div>
 
-    <div id="status" class="card small">Not connected</div>
+  <!-- SCREEN: LOBBY -->
+  <div class="screen" id="screenLobby">
+    <h1>🕵️ Impostor Party</h1>
+    <div class="badge" id="roomBadge">ROOM</div>
+    <div id="playersList"></div>
+    <p class="sub" id="lobbyHint">Waiting for players...</p>
+    <button id="startBtn" class="hidden">Start Game</button>
+  </div>
 
-    <div id="lobbyCard" class="card">
-      <h2>Join / Create Room</h2>
-      <input id="nameInput" placeholder="Your name" maxlength="24" />
-      <input id="roomInput" placeholder="Room code (e.g. ABC123)" maxlength="6" />
-      <div class="row">
-        <button id="createBtn">Create Room</button>
-        <button id="joinBtn">Join Room</button>
-      </div>
-      <p class="hint">Host creates room, others join with same code.</p>
+  <!-- SCREEN: ROLE REVEAL -->
+  <div class="screen" id="screenRole">
+    <h2 id="roleBadge">Your Role</h2>
+    <div class="infoBox">
+      <p class="label">Category</p>
+      <p class="value" id="categoryText"></p>
     </div>
-
-    <div id="roomCard" class="card hidden">
-      <h2>Room: <span id="roomCodeText"></span></h2>
-      <p id="hostText"></p>
-      <ul id="playersList"></ul>
-      <button id="startBtn" class="hidden">Start Game</button>
+    <div class="infoBox">
+      <p class="label">Word</p>
+      <p class="value" id="wordText"></p>
     </div>
+    <button id="roleReadyBtn" class="hidden">Start Clues</button>
+    <p class="sub" id="roleWait">Waiting for host...</p>
+  </div>
 
-    <div id="roleCard" class="card hidden">
-      <h2>Your Role</h2>
-      <p><b>Category:</b> <span id="categoryText"></span></p>
-      <p><b>Word:</b> <span id="wordText"></span></p>
-      <p id="roleBadge"></p>
+  <!-- SCREEN: CLUE -->
+  <div class="screen" id="screenClue">
+    <p class="roundTag">Round <span id="roundText">1</span></p>
+    <h2>Give a Clue</h2>
+    <p class="sub">Turn: <b id="turnText">-</b></p>
+    <div id="clueBox" class="hidden">
+      <input id="clueInput" placeholder="Type your clue..." maxlength="120" />
+      <button id="sendClueBtn">Submit</button>
     </div>
+    <p class="sub" id="clueWait">Waiting for current player...</p>
+  </div>
 
-    <div id="gameCard" class="card hidden">
-      <h2>Game</h2>
-      <p>Round: <span id="roundText">1</span></p>
-      <p>Phase: <span id="phaseText">lobby</span></p>
-      <p>Turn: <span id="turnText">-</span></p>
-
-      <div id="clueBox" class="hidden">
-        <input id="clueInput" placeholder="Your clue sentence..." maxlength="120" />
-        <button id="sendClueBtn">Send Clue</button>
-      </div>
-
-      <div id="hostControls" class="hidden">
-        <button id="nextRoundBtn">Another Round</button>
-        <button id="startVoteBtn">Vote Now</button>
-      </div>
+  <!-- SCREEN: ROUND END (host picks) -->
+  <div class="screen" id="screenRoundEnd">
+    <h2>Round Complete</h2>
+    <div id="clueSummary"></div>
+    <div id="hostPick" class="hidden">
+      <button id="nextRoundBtn">Another Round</button>
+      <button id="startVoteBtn" class="danger">Start Vote</button>
     </div>
+    <p class="sub" id="roundEndWait">Waiting for host...</p>
+  </div>
 
-    <div id="voteCard" class="card hidden">
-      <h2>Vote</h2>
-      <p>Pick who you think is impostor. Past clues shown below.</p>
-      <div id="voteList"></div>
-      <p id="voteProgressText"></p>
+  <!-- SCREEN: VOTE -->
+  <div class="screen" id="screenVote">
+    <h2>Vote</h2>
+    <p class="sub">Who is the impostor?</p>
+    <div id="voteList"></div>
+    <p class="sub" id="voteProgress"></p>
+  </div>
+
+  <!-- SCREEN: RESULT -->
+  <div class="screen" id="screenResult">
+    <h2 id="resultTitle">Result</h2>
+    <p id="resultText"></p>
+    <div class="infoBox">
+      <p class="label">Category</p>
+      <p class="value" id="resultCategory"></p>
     </div>
-
-    <div id="resultCard" class="card hidden">
-      <h2>Result</h2>
-      <p id="resultText"></p>
-      <p><b>Category:</b> <span id="resultCategory"></span></p>
-      <p><b>Word:</b> <span id="resultWord"></span></p>
-      <div id="tallyBox"></div>
+    <div class="infoBox">
+      <p class="label">Word</p>
+      <p class="value" id="resultWord"></p>
     </div>
-
-    <div id="errorBox" class="error"></div>
+    <div id="tallyBox"></div>
+    <button id="playAgainBtn" class="hidden">Play Again</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
