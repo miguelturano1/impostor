@@ -1,190 +1,211 @@
 const socket = io();
-
-let mySocketId = null;
-let roomCode = "";
-let currentHostId = null;
-let turnSocketId = null;
-
 const $ = (id) => document.getElementById(id);
 
-const statusEl = $("status");
-const errorBox = $("errorBox");
+let me = null;
+let roomCode = "";
+let hostId = null;
 
-const roomCard = $("roomCard");
-const roleCard = $("roleCard");
-const gameCard = $("gameCard");
-const voteCard = $("voteCard");
-const resultCard = $("resultCard");
-
-const nameInput = $("nameInput");
-const roomInput = $("roomInput");
-const roomCodeText = $("roomCodeText");
-const hostText = $("hostText");
-const playersList = $("playersList");
-
-const startBtn = $("startBtn");
-const categoryText = $("categoryText");
-const wordText = $("wordText");
-const roleBadge = $("roleBadge");
-
-const roundText = $("roundText");
-const phaseText = $("phaseText");
-const turnText = $("turnText");
-
-const clueBox = $("clueBox");
-const clueInput = $("clueInput");
-
-const hostControls = $("hostControls");
-const voteList = $("voteList");
-const voteProgressText = $("voteProgressText");
-
-const resultText = $("resultText");
-const resultCategory = $("resultCategory");
-const resultWord = $("resultWord");
-const tallyBox = $("tallyBox");
+// ---- Screen switching ----
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+  $(id).classList.add("active");
+}
 
 function showError(msg) {
-  errorBox.textContent = msg || "";
-  if (msg) setTimeout(() => (errorBox.textContent = ""), 2500);
-}
-function isHost() {
-  return mySocketId && currentHostId === mySocketId;
-}
-function setVisible(el, yes) {
-  el.classList.toggle("hidden", !yes);
+  $("errorBox").textContent = msg || "";
+  if (msg) setTimeout(() => ($("errorBox").textContent = ""), 3000);
 }
 
+function isHost() {
+  return me && hostId === me;
+}
+
+// ---- Join screen ----
 $("createBtn").onclick = () => {
-  const name = nameInput.value.trim();
-  let rc = roomInput.value.trim().toUpperCase();
+  const name = $("nameInput").value.trim();
+  let rc = $("roomInput").value.trim().toUpperCase();
   if (!rc) rc = Math.random().toString(36).slice(2, 8).toUpperCase();
   socket.emit("createRoom", { roomCode: rc, name });
 };
 
 $("joinBtn").onclick = () => {
-  const name = nameInput.value.trim();
-  const rc = roomInput.value.trim().toUpperCase();
-  socket.emit("joinRoom", { roomCode: rc, name });
+  socket.emit("joinRoom", {
+    roomCode: $("roomInput").value.trim().toUpperCase(),
+    name: $("nameInput").value.trim(),
+  });
 };
 
-startBtn.onclick = () => socket.emit("startGame", { roomCode });
+// ---- Lobby ----
+$("startBtn").onclick = () => socket.emit("startGame", { roomCode });
 
+// ---- Role ----
+$("roleReadyBtn").onclick = () => socket.emit("readyForClue", { roomCode });
+
+// ---- Clue ----
 $("sendClueBtn").onclick = () => {
-  const clue = clueInput.value.trim();
-  socket.emit("submitClue", { roomCode, clue });
-  clueInput.value = "";
+  socket.emit("submitClue", { roomCode, clue: $("clueInput").value.trim() });
+  $("clueInput").value = "";
 };
 
+// ---- Round end ----
 $("nextRoundBtn").onclick = () => socket.emit("hostNextRound", { roomCode });
 $("startVoteBtn").onclick = () => socket.emit("hostStartVote", { roomCode });
 
-socket.on("connect", () => {
-  statusEl.textContent = "Connected";
-});
+// ---- Result ----
+$("playAgainBtn").onclick = () => socket.emit("playAgain", { roomCode });
+
+// ==== SOCKET EVENTS ====
 
 socket.on("you", ({ socketId, roomCode: rc }) => {
-  mySocketId = socketId;
+  me = socketId;
   roomCode = rc;
-  roomCodeText.textContent = roomCode;
-  roomInput.value = roomCode;
-
-  setVisible(roomCard, true);
-  setVisible(gameCard, true);
+  showScreen("screenLobby");
 });
 
 socket.on("roomState", (state) => {
   if (!state) return;
-  currentHostId = state.hostSocketId;
+  hostId = state.hostSocketId;
 
-  roomCodeText.textContent = state.roomCode;
-  hostText.textContent = `Host: ${state.players.find(p => p.socketId === state.hostSocketId)?.name || "Unknown"}`;
+  $("roomBadge").textContent = state.roomCode;
 
-  playersList.innerHTML = "";
+  $("playersList").innerHTML = "";
   state.players.forEach((p) => {
-    const li = document.createElement("li");
-    li.textContent = p.name + (p.socketId === currentHostId ? " 👑" : "");
-    playersList.appendChild(li);
+    const div = document.createElement("div");
+    div.className = "playerChip";
+    div.innerHTML =
+      `<span class="pname">${p.name}</span>` +
+      (p.socketId === hostId ? `<span class="crown">👑</span>` : "");
+    $("playersList").appendChild(div);
   });
 
-  const started = state.game?.started;
-  setVisible(startBtn, isHost() && !started);
+  $("lobbyHint").textContent = state.players.length + " player" + (state.players.length !== 1 ? "s" : "") + " in room";
+
+  $("startBtn").classList.toggle("hidden", !(isHost() && !state.game?.started));
 });
 
 socket.on("roleData", ({ isImpostor, category, word }) => {
-  setVisible(roleCard, true);
-  categoryText.textContent = category;
-  wordText.textContent = isImpostor ? "??? (You are impostor)" : word;
-  roleBadge.textContent = isImpostor ? "🕵️ You are the IMPOSTOR" : "✅ You are a normal player";
+  $("categoryText").textContent = category;
+  $("wordText").textContent = isImpostor ? "???" : word;
+
+  if (isImpostor) {
+    $("roleBadge").textContent = "🕵️ You are the Impostor";
+    $("roleBadge").style.color = "#e85d5d";
+  } else {
+    $("roleBadge").textContent = "✅ You are a Crewmate";
+    $("roleBadge").style.color = "#4ecf73";
+  }
 });
 
-socket.on("gameState", ({ phase, round, turnSocketId: tsid, turnName }) => {
-  turnSocketId = tsid;
+socket.on("gamePhase", (data) => {
+  const { phase } = data;
 
-  phaseText.textContent = phase;
-  roundText.textContent = round;
-  turnText.textContent = turnName || "-";
+  if (phase === "lobby") {
+    showScreen("screenLobby");
+    return;
+  }
 
-  const myTurn = mySocketId && turnSocketId === mySocketId;
-  setVisible(clueBox, phase === "clue" && myTurn);
+  if (phase === "role") {
+    showScreen("screenRole");
+    $("roleReadyBtn").classList.toggle("hidden", !isHost());
+    $("roleWait").classList.toggle("hidden", isHost());
+    return;
+  }
 
-  const hostCanChoose = isHost() && phase === "roundEnd";
-  setVisible(hostControls, hostCanChoose);
+  if (phase === "clue") {
+    showScreen("screenClue");
+    $("roundText").textContent = data.round;
+    $("turnText").textContent = data.turnName || "-";
 
-  setVisible(voteCard, phase === "vote");
-  setVisible(resultCard, phase === "result");
-});
+    const myTurn = me === data.turnSocketId;
+    $("clueBox").classList.toggle("hidden", !myTurn);
+    $("clueWait").classList.toggle("hidden", myTurn);
+    if (myTurn) $("clueInput").focus();
+    return;
+  }
 
-socket.on("roundSummary", ({ round }) => {
-  showError(`Round ${round} done. Host chooses: another round or vote.`);
-});
+  if (phase === "roundEnd") {
+    showScreen("screenRoundEnd");
 
-socket.on("voteStart", ({ players }) => {
-  setVisible(voteCard, true);
-  voteList.innerHTML = "";
+    $("clueSummary").innerHTML = "";
+    (data.players || []).forEach((p) => {
+      const div = document.createElement("div");
+      div.className = "voteCard";
+      div.innerHTML =
+        `<div class="pname">${p.name}</div>` +
+        `<div class="clueList">${(p.clues || []).join(" · ") || "no clues yet"}</div>`;
+      $("clueSummary").appendChild(div);
+    });
 
-  players.forEach((p) => {
-    const card = document.createElement("div");
-    card.className = "playerCard";
+    $("hostPick").classList.toggle("hidden", !isHost());
+    $("roundEndWait").classList.toggle("hidden", isHost());
+    return;
+  }
 
-    const title = document.createElement("div");
-    title.innerHTML = `<b>${p.name}</b>`;
-    card.appendChild(title);
+  if (phase === "vote") {
+    showScreen("screenVote");
 
-    const clues = document.createElement("div");
-    clues.className = "clue";
-    clues.textContent = p.clues.length ? p.clues.join(" | ") : "(no clues)";
-    card.appendChild(clues);
+    $("voteList").innerHTML = "";
+    (data.players || []).forEach((p) => {
+      const div = document.createElement("div");
+      div.className = "voteCard";
 
-    const btn = document.createElement("button");
-    btn.textContent = `Vote ${p.name}`;
-    btn.onclick = () => socket.emit("submitVote", { roomCode, targetSocketId: p.socketId });
-    card.appendChild(btn);
+      const clueStr = (p.clues || []).join(" · ") || "no clues";
+      div.innerHTML =
+        `<div class="pname">${p.name}</div>` +
+        `<div class="clueList">${clueStr}</div>`;
 
-    voteList.appendChild(card);
-  });
+      const btn = document.createElement("button");
+      btn.textContent = `Vote ${p.name}`;
+      btn.onclick = () => {
+        socket.emit("submitVote", { roomCode, targetSocketId: p.socketId });
+        // disable all vote buttons after voting
+        document.querySelectorAll("#voteList button").forEach((b) => {
+          b.disabled = true;
+          b.style.opacity = "0.4";
+        });
+        btn.textContent = `Voted ✓`;
+      };
+      div.appendChild(btn);
+      $("voteList").appendChild(div);
+    });
+
+    $("voteProgress").textContent = "";
+    return;
+  }
+
+  if (phase === "result") {
+    showScreen("screenResult");
+
+    const names = Object.fromEntries(data.players.map((p) => [p.socketId, p.name]));
+
+    if (data.crewWon) {
+      $("resultTitle").textContent = "🎉 Crew Wins!";
+      $("resultTitle").style.color = "#4ecf73";
+      $("resultText").textContent = `${names[data.votedOutId]} was the impostor!`;
+    } else {
+      $("resultTitle").textContent = "🕵️ Impostor Wins!";
+      $("resultTitle").style.color = "#e85d5d";
+      $("resultText").textContent = `Voted out ${names[data.votedOutId]}, but ${names[data.impostorId]} was the impostor.`;
+    }
+
+    $("resultCategory").textContent = data.category;
+    $("resultWord").textContent = data.word;
+
+    $("tallyBox").innerHTML = "";
+    Object.entries(data.tally).forEach(([id, count]) => {
+      const row = document.createElement("div");
+      row.className = "tallyRow";
+      row.innerHTML = `<span>${names[id] || id}</span><span>${count} vote${count !== 1 ? "s" : ""}</span>`;
+      $("tallyBox").appendChild(row);
+    });
+
+    $("playAgainBtn").classList.toggle("hidden", !isHost());
+    return;
+  }
 });
 
 socket.on("voteProgress", ({ totalVotes, needed }) => {
-  voteProgressText.textContent = `Votes: ${totalVotes}/${needed}`;
-});
-
-socket.on("result", ({ votedOutId, impostorId, crewWon, tally, word, category, players }) => {
-  setVisible(resultCard, true);
-
-  const nameById = Object.fromEntries(players.map((p) => [p.socketId, p.name]));
-  resultText.textContent = crewWon
-    ? `Crew wins! Voted out ${nameById[votedOutId]} (the impostor).`
-    : `Impostor wins! Voted out ${nameById[votedOutId]}, but impostor was ${nameById[impostorId]}.`;
-
-  resultCategory.textContent = category;
-  resultWord.textContent = word;
-
-  tallyBox.innerHTML = "<h3>Vote Tally</h3>";
-  Object.entries(tally).forEach(([id, count]) => {
-    const p = document.createElement("p");
-    p.textContent = `${nameById[id] || id}: ${count}`;
-    tallyBox.appendChild(p);
-  });
+  $("voteProgress").textContent = `${totalVotes} / ${needed} voted`;
 });
 
 socket.on("errorMsg", (msg) => showError(msg));
