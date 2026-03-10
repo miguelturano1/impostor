@@ -9,9 +9,10 @@
 <body>
   <div class="app">
     <h1>🕵️ Impostor Party</h1>
+
     <div id="status" class="card small">Not connected</div>
 
-    <div class="card">
+    <div id="lobbyCard" class="card">
       <h2>Join / Create Room</h2>
       <input id="nameInput" placeholder="Your name" maxlength="24" />
       <input id="roomInput" placeholder="Room code (e.g. ABC123)" maxlength="6" />
@@ -19,6 +20,7 @@
         <button id="createBtn">Create Room</button>
         <button id="joinBtn">Join Room</button>
       </div>
+      <p class="hint">Host creates room, others join with same code.</p>
     </div>
 
     <div id="roomCard" class="card hidden">
@@ -36,12 +38,13 @@
     </div>
 
     <div id="gameCard" class="card hidden">
+      <h2>Game</h2>
       <p>Round: <span id="roundText">1</span></p>
       <p>Phase: <span id="phaseText">lobby</span></p>
       <p>Turn: <span id="turnText">-</span></p>
 
       <div id="clueBox" class="hidden">
-        <input id="clueInput" placeholder="Your clue..." maxlength="120" />
+        <input id="clueInput" placeholder="Your clue sentence..." maxlength="120" />
         <button id="sendClueBtn">Send Clue</button>
       </div>
 
@@ -53,6 +56,7 @@
 
     <div id="voteCard" class="card hidden">
       <h2>Vote</h2>
+      <p>Pick who you think is impostor. Past clues shown below.</p>
       <div id="voteList"></div>
       <p id="voteProgressText"></p>
     </div>
@@ -68,7 +72,7 @@
     <div id="errorBox" class="error"></div>
   </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script src="/public_client.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/public_client.js"></script>
 </body>
 </html>
