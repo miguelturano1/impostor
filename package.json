@@ -2,9 +2,9 @@
   "name": "impostor-party",
   "version": "1.0.0",
   "description": "Multiplayer impostor browser game",
-  "main": "server.js",
+  "main": "server_Version3.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server_Version3.js"
   },
   "dependencies": {
     "express": "^4.19.2",
