@@ -1,0 +1,9 @@
+body { margin:0; font-family:Arial,sans-serif; background:#101426; color:#fff; }
+.app { max-width:700px; margin:0 auto; padding:16px; }
+.card { background:#1a2040; border-radius:12px; padding:12px; margin-bottom:10px; }
+.hidden { display:none; }
+.row { display:flex; gap:8px; }
+input,button { width:100%; padding:10px; border-radius:8px; border:none; margin:5px 0; }
+button { background:#6ea8fe; font-weight:700; }
+.error { color:#ff7f7f; min-height:24px; }
+.playerCard { background:#222b55; border-radius:8px; padding:8px; margin-bottom:8px; }

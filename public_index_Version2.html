@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Impostor Party</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="app">
+    <h1>🕵️ Impostor Party</h1>
+    <div id="status" class="card small">Not connected</div>
+
+    <div class="card">
+      <h2>Join / Create Room</h2>
+      <input id="nameInput" placeholder="Your name" maxlength="24" />
+      <input id="roomInput" placeholder="Room code (e.g. ABC123)" maxlength="6" />
+      <div class="row">
+        <button id="createBtn">Create Room</button>
+        <button id="joinBtn">Join Room</button>
+      </div>
+    </div>
+
+    <div id="roomCard" class="card hidden">
+      <h2>Room: <span id="roomCodeText"></span></h2>
+      <p id="hostText"></p>
+      <ul id="playersList"></ul>
+      <button id="startBtn" class="hidden">Start Game</button>
+    </div>
+
+    <div id="roleCard" class="card hidden">
+      <h2>Your Role</h2>
+      <p><b>Category:</b> <span id="categoryText"></span></p>
+      <p><b>Word:</b> <span id="wordText"></span></p>
+      <p id="roleBadge"></p>
+    </div>
+
+    <div id="gameCard" class="card hidden">
+      <p>Round: <span id="roundText">1</span></p>
+      <p>Phase: <span id="phaseText">lobby</span></p>
+      <p>Turn: <span id="turnText">-</span></p>
+
+      <div id="clueBox" class="hidden">
+        <input id="clueInput" placeholder="Your clue..." maxlength="120" />
+        <button id="sendClueBtn">Send Clue</button>
+      </div>
+
+      <div id="hostControls" class="hidden">
+        <button id="nextRoundBtn">Another Round</button>
+        <button id="startVoteBtn">Vote Now</button>
+      </div>
+    </div>
+
+    <div id="voteCard" class="card hidden">
+      <h2>Vote</h2>
+      <div id="voteList"></div>
+      <p id="voteProgressText"></p>
+    </div>
+
+    <div id="resultCard" class="card hidden">
+      <h2>Result</h2>
+      <p id="resultText"></p>
+      <p><b>Category:</b> <span id="resultCategory"></span></p>
+      <p><b>Word:</b> <span id="resultWord"></span></p>
+      <div id="tallyBox"></div>
+    </div>
+
+    <div id="errorBox" class="error"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/client.js"></script>
+</body>
+</html>
