@@ -1,9 +1,60 @@
-body { margin:0; font-family:Arial,sans-serif; background:#101426; color:#fff; }
-.app { max-width:700px; margin:0 auto; padding:16px; }
-.card { background:#1a2040; border-radius:12px; padding:12px; margin-bottom:10px; }
-.hidden { display:none; }
-.row { display:flex; gap:8px; }
-input,button { width:100%; padding:10px; border-radius:8px; border:none; margin:5px 0; }
-button { background:#6ea8fe; font-weight:700; }
-.error { color:#ff7f7f; min-height:24px; }
-.playerCard { background:#222b55; border-radius:8px; padding:8px; margin-bottom:8px; }
+:root {
+  --bg: #0f1220;
+  --card: #171b2e;
+  --text: #e9ecff;
+  --muted: #aab1d6;
+  --accent: #6ea8fe;
+  --danger: #ff6b6b;
+}
+* { box-sizing: border-box; font-family: system-ui, Arial, sans-serif; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+.app {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 16px;
+}
+h1 { font-size: 1.5rem; }
+.card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.small { font-size: .9rem; color: var(--muted); }
+.hidden { display: none; }
+.row { display: flex; gap: 8px; }
+input, button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin: 6px 0;
+}
+button {
+  background: var(--accent);
+  color: #081023;
+  font-weight: 700;
+}
+button:disabled { opacity: .5; }
+ul { padding-left: 20px; }
+.hint { color: var(--muted); font-size: .9rem; }
+.error {
+  color: var(--danger);
+  min-height: 24px;
+  font-weight: 700;
+}
+.playerCard {
+  background: #202640;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.clue {
+  color: var(--muted);
+  font-size: .92rem;
+  margin-left: 8px;
+}
