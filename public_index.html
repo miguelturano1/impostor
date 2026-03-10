@@ -29,14 +29,16 @@
 
   <!-- SCREEN: ROLE REVEAL -->
   <div class="screen" id="screenRole">
-    <h2 id="roleBadge">Your Role</h2>
-    <div class="infoBox">
-      <p class="label">Category</p>
-      <p class="value" id="categoryText"></p>
-    </div>
-    <div class="infoBox">
-      <p class="label">Word</p>
-      <p class="value" id="wordText"></p>
+    <div class="roleReveal">
+      <h2 id="roleBadge">Your Role</h2>
+      <div class="infoBox">
+        <p class="label">Category</p>
+        <p class="value" id="categoryText"></p>
+      </div>
+      <div class="infoBox">
+        <p class="label">Word</p>
+        <p class="value" id="wordText"></p>
+      </div>
     </div>
     <button id="roleReadyBtn" class="hidden">Start Clues</button>
     <p class="sub" id="roleWait">Waiting for host...</p>
@@ -47,6 +49,7 @@
     <p class="roundTag">Round <span id="roundText">1</span></p>
     <h2>Give a Clue</h2>
     <p class="sub">Turn: <b id="turnText">-</b></p>
+    <div id="clueFeed"></div>
     <div id="clueBox" class="hidden">
       <input id="clueInput" placeholder="Type your clue..." maxlength="120" />
       <button id="sendClueBtn">Submit</button>
@@ -54,7 +57,7 @@
     <p class="sub" id="clueWait">Waiting for current player...</p>
   </div>
 
-  <!-- SCREEN: ROUND END (host picks) -->
+  <!-- SCREEN: ROUND END -->
   <div class="screen" id="screenRoundEnd">
     <h2>Round Complete</h2>
     <div id="clueSummary"></div>
@@ -87,6 +90,20 @@
     </div>
     <div id="tallyBox"></div>
     <button id="playAgainBtn" class="hidden">Play Again</button>
+  </div>
+
+  <!-- CHAT OVERLAY -->
+  <button id="chatToggle">💬</button>
+  <div id="chatPanel" class="chatClosed">
+    <div class="chatHeader">
+      <span>Room Chat</span>
+      <button id="chatClose">✕</button>
+    </div>
+    <div id="chatMessages"></div>
+    <div class="chatInputRow">
+      <input id="chatInput" placeholder="Say something..." maxlength="200" />
+      <button id="chatSendBtn">→</button>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
